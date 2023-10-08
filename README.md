@@ -35,23 +35,23 @@ Collection merupakan bagian integral dari kerangka kerja Laravel dan memberikan 
 
 ## Table of Contents
 
-### [Create Collection](#create-collection)
+### [Create Collection](#create-collection-1)
 
-### [ForEach](#foreach)
+### [ForEach](#foreach-1)
 
-### [Manipulation Collection](#manipulation-collection)
+### [Manipulation Collection](#manipulation-collection-1)
 
-### [Mapping](#mapping)
+### [Mapping](#mapping-1)
 
-### [Zipping](#zipping)
+### [Zipping](#zipping-1)
 
-### [Flattening](#flattening)
+### [Flattening](#flattening-1)
 
-### [String Representation](#string-representation)
+### [String Representation](#string-representation-1)
 
-### [Filtering](#filtering)
+### [Filtering](#filtering-1)
 
-### [Partitioning](#partitioning)
+### [Partitioning](#partitioning-1)
 
 ## Contents
 
