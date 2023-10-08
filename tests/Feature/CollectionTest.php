@@ -189,4 +189,25 @@ class CollectionTest extends TestCase
 
         self::assertEqualsCanonicalizing([2, 4, 6, 8, 10], $result->all());
     }
+
+    // Partitioning
+    public function testPartition()
+    {
+        $collection = collect([
+            'Asep' => 87,
+            'Udin' => 98,
+            'Budi' => 75
+        ]);
+
+        [$result1, $result2] = $collection->partition(fn ($value, $key) => $value >= 80);
+
+        self::assertEquals([
+            'Asep' => 87,
+            'Udin' => 98
+        ], $result1->all());
+
+        self::assertEquals([
+            'Budi' => 75
+        ], $result2->all());
+    }
 }

@@ -51,6 +51,8 @@ Collection merupakan bagian integral dari kerangka kerja Laravel dan memberikan 
 
 ### [Filtering](#filtering)
 
+### [Partitioning](#partitioning)
+
 ## Contents
 
 ### Create Collection
@@ -281,5 +283,31 @@ public function testFilter()
         'Udin' => 90,
         'Sugi' => 78
     ], $result->all());
+}
+```
+
+### Partitioning
+
+#### partition(funtion)
+
+```php
+public function testPartition()
+{
+    $collection = collect([
+        'Asep' => 87,
+        'Udin' => 98,
+        'Budi' => 75
+    ]);
+
+    [$result1, $result2] = $collection->partition(fn ($value, $key) => $value >= 80);
+
+    self::assertEquals([
+        'Asep' => 87,
+        'Udin' => 98
+    ], $result1->all());
+
+    self::assertEquals([
+        'Budi' => 75
+    ], $result2->all());
 }
 ```
