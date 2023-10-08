@@ -53,6 +53,8 @@ Collection merupakan bagian integral dari kerangka kerja Laravel dan memberikan 
 
 ### [Partitioning](#partitioning-1)
 
+### [Testing](#testing-1)
+
 ## Contents
 
 ### Create Collection
@@ -309,5 +311,98 @@ public function testPartition()
     self::assertEquals([
         'Budi' => 75
     ], $result2->all());
+}
+```
+
+### Testing
+
+-   Testing adalah operasi untuk mengecek isi data collection
+-   Hasil dari testing adalah boolean, dimana true jika sesuai kondisi, dan false jika tidak sesuai kondisi
+
+| Method               | Keterangan                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------- |
+| has(array)           | Mengecek apakah collection memiliki semua key data                                            |
+| hasAny(array)        | Mengecek apakah collection memiliki salah satu key data                                       |
+| contains(value)      | Mengecek apakah collection memiliki value                                                     |
+| contains(key, value) | Mengecek apakah collection memiliki data key dan value                                        |
+| contains(function)   | Iterasi tiap data, mengirim ke function dan mengecek apakah salah satu data menghasilkan true |
+
+```php
+public function testTesting()
+{
+    $collection = collect(['Udin', 'Samsul', 'Ucup']);
+    self::assertTrue($collection->contains('Udin'));
+    self::assertTrue($collection->contains(fn ($value, $key) => $value == "Samsul"));
+}
+```
+
+### Grouping
+
+-   Grouping adalah operasi untuk meng-grup kan element-element yang ada di collection.
+
+| Method            | Keterangan                                       |
+| ----------------- | ------------------------------------------------ |
+| groupBy(key)      | Menggabungkan data collection per key            |
+| groupBy(function) | Menggabungkan data collection per hasil function |
+
+```php
+public function testGrouping()
+{
+    $collection = collect([
+        [
+            'name' => 'Samsul',
+            'departement' => 'HR'
+        ],
+        [
+            'name' => 'Udin',
+            'departement' => 'IT'
+        ],
+        [
+            'name' => 'Otong',
+            'departement' => 'IT'
+        ]
+    ]);
+
+    $result = $collection->groupBy('departement');
+
+    self::assertEquals([
+        'IT' => collect([
+            [
+                'name' => 'Udin',
+                'departement' => 'IT'
+            ],
+            [
+                'name' => 'Otong',
+                'departement' => 'IT'
+            ]
+        ]),
+        'HR' => collect([
+            [
+                'name' => 'Samsul',
+                'departement' => 'HR'
+            ]
+        ])
+    ], $result->all());
+
+    $result = $collection->groupBy(fn ($value, $key) => strtolower($value['departement']));
+
+    self::assertEquals([
+        'it' => collect([
+            [
+                'name' => 'Udin',
+                'departement' => 'IT'
+            ],
+            [
+                'name' => 'Otong',
+                'departement' => 'IT'
+            ]
+        ]),
+        'hr' => collect([
+            [
+                'name' => 'Samsul',
+                'departement' => 'HR'
+            ]
+        ])
+    ], $result->all());
 }
 ```
