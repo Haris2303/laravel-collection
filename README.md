@@ -55,6 +55,33 @@ Collection merupakan bagian integral dari kerangka kerja Laravel dan memberikan 
 
 ### [Testing](#testing-1)
 
+### [Grouping](#grouping-1)
+
+### [Slicing](#slicing-1)
+
+### [Take & Skip](#slicing-1)
+
+### [Chunked](#chunked-1)
+
+### [Retrieve](#retrieve-1)
+
+### [Random](#random-1)
+
+### [Checking Existence](#checking-existence-1)
+
+### [Ordering Operations](#ordering-operations-1)
+
+### [Aggregate](#aggregate-1)
+
+### [Reduce](#reduce-1)
+
+### [Lazy Collection](#lazy-collection-1)
+
+### Method Lainnya Api Docs Laravel
+
+-   [Laravel API](https://laravel.com/api/10.x/Illuminate/Support/Collection.html)
+-   [Laravel Docs](https://laravel.com/docs/10.x/collections#available-methods)
+
 ## Contents
 
 ### Create Collection
@@ -404,5 +431,313 @@ public function testGrouping()
             ]
         ])
     ], $result->all());
+}
+```
+
+### Slicing
+
+-   Slicing adalah operasi untuk mengambil sebagian data di Collection
+
+| Method               | Keterangan                                           |
+| -------------------- | ---------------------------------------------------- |
+| slice(start)         | Mengambil data mulai dari start sampai data terakhir |
+| slice(start, length) | Mengambil data mulai dari start sepanjang length     |
+
+```php
+public function testSlice()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    // slice(start)
+    $result = $collection->slice(4);
+    self::assertEqualsCanonicalizing([5, 6, 7, 8, 9], $result->all());
+
+    // slice(start, length)
+    $result = $collection->slice(6, 2);
+    self::assertEqualsCanonicalizing([7, 8], $result->all());
+}
+```
+
+### Take & Skip
+
+-   Untuk mengambil sebagian element di collection, selain menggunakan slice, kita juga bisa menggunakan operator take dan skip
+
+#### Take
+
+| Method              | Keterangan                                                                                                      |
+| ------------------- | --------------------------------------------------------------------------------------------------------------- |
+| take(length)        | Mengambil data dari awal sepanjang length, jika length negative artinya proses pengambilan dari posisi belakang |
+| takeUntil(function) | Iterasi tiap data, ambil tiap data sampai function mengembalikan nilai true                                     |
+| takeWhile(function) | Iterasi tiap data, ambil tiap data sampai function mengembalikan nilai false                                    |
+
+```php
+public function testTake()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    // take(length)
+    $result = $collection->take(4);
+    self::assertEqualsCanonicalizing([1, 2, 3, 4], $result->all());
+
+    // takeUntil(function)
+    $result = $collection->takeUntil(fn ($value, $key) => $value == 4);
+    self::assertEqualsCanonicalizing([1, 2, 3], $result->all());
+
+    // takeWhile(function)
+    $result = $collection->takeWhile(fn ($value, $key) => $value < 3);
+    self::assertEqualsCanonicalizing([1, 2], $result->all());
+}
+```
+
+#### Skip
+
+| Method              | Keterangan                                                                          |
+| ------------------- | ----------------------------------------------------------------------------------- |
+| skip(length)        | Ambil seluruh data kecuali sejumlah length data diawal                              |
+| skipUntil(function) | Iterasi tiap data, jangan ambil tiap data sampai function mengembalikan nilai true  |
+| takeWhile(function) | Iterasi tiap data, jangan ambil tiap data sampai function mengembalikan nilai false |
+
+```php
+public function testSkip()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+    // skip(length)
+    $result = $collection->skip(3);
+    self::assertEqualsCanonicalizing([4, 5, 6, 7, 8, 9], $result->all());
+
+    // skipUntil(function)
+    $result = $collection->skipUntil(fn ($value, $key) => $value == 3);
+    self::assertEqualsCanonicalizing([3, 4, 5, 6, 7, 8, 9], $result->all());
+
+    // skipWhile(function)
+    $result = $collection->skipWhile(fn ($value, $key) => $value < 6);
+    self::assertEqualsCanonicalizing([6, 7, 8, 9], $result->all());
+}
+```
+
+### Chunked
+
+-   Chunked adalah operasi untuk memotong Collection menjadi beberapa Collection
+
+| Method        | Keterangan                                                                                       |
+| ------------- | ------------------------------------------------------------------------------------------------ |
+| chunk(number) | Potong collection menjadi lebih kecil dimana tiap collection memiliki sejumlah total data number |
+
+```php
+public function testChunk()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    $result = $collection->chunk(3);
+    self::assertEqualsCanonicalizing([1, 2, 3], $result[0]->all());
+    self::assertEqualsCanonicalizing([4, 5, 6], $result[1]->all());
+    self::assertEqualsCanonicalizing([7, 8], $result[2]->all());
+}
+```
+
+### Retrieve
+
+-   Retrieve adalah operasi untuk mengambil data di Collection
+
+#### First Operations
+
+| Method                 | Keterangan                                                                                            |
+| ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| first()                | Mengambil data pertama di collection, atau null jika tidak ada                                        |
+| firstOrFail()          | Mengambil data pertama di collection, atau error ItemNotFoundException jika tidak ada                 |
+| first(function)        | Mengambil data pertama di collection yang sesuai dengan kondisi function jika menghasilkan nilai true |
+| firstWhere(key, value) | Mengambil data pertama di collection dimana key sama dengan value                                     |
+
+```php
+public function testFirst()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    // first()
+    $result = $collection->first();
+    self::assertEquals(1, $result);
+
+    // first(function)
+    $result = $collection->first(fn ($value, $key) => $value > 5);
+    self::assertEqualsCanonicalizing(6, $result);
+}
+```
+
+#### Last Operations
+
+| Method         | Keterangan                                                                                             |
+| -------------- | ------------------------------------------------------------------------------------------------------ |
+| last()         | Mengambil data terakhir di collection, atau null jika tidak ada                                        |
+| last(function) | Mengambil data terakhir di collection yang sesuai dengan kondisi function jika menghasilkan nilai true |
+
+```php
+public function testLast()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    // last()
+    $result = $collection->last();
+    self::assertEquals(10, $result);
+
+    // last(function)
+    $result = $collection->last(fn ($value, $key) => $value < 5);
+    self::assertEqualsCanonicalizing(4, $result);
+}
+```
+
+### Random
+
+-   Random adalah operasi untuk mengambil data di collection dengan posisi random
+
+| Method        | Keterangan                                                    |
+| ------------- | ------------------------------------------------------------- |
+| random()      | Mengambil satu data collection dengan posisi random           |
+| random(total) | Mengambil sejumlah total data collection dengan posisi random |
+
+```php
+public function testRandom()
+{
+    $collection = collect([1, 2, 3, 4, 5]);
+
+    // random()
+    $result = $collection->random();
+    self::assertTrue(in_array($result, [1, 2, 3, 4, 5]));
+
+    // random(function)
+    $result = $collection->random(5);
+    self::assertEquals([1, 2, 3, 4, 5], $result->all());
+}
+```
+
+### Checking Existence
+
+-   Checking Existence merupakan operasi untuk mengecek apakah terdapat data yang dicari di Collection
+
+| Method             | Keterangan                                                                               |
+| ------------------ | ---------------------------------------------------------------------------------------- |
+| isEmpty(): bool    | Mengecek apakah collection kosong                                                        |
+| isNotEmpty()       | Mengecek apakah collection tidak kosong                                                  |
+| contains(value)    | Mengecek apakah collection memiliki value                                                |
+| contains(function) | Mengecek apakah collection memiliki value dengan kondisi function yang menghasilkan true |
+| containsOneItem()  | Mengecek apakah collection hanya memiliki satu data                                      |
+
+```php
+public function testCheckingExistence()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    // isNotEmpty()
+    $this->assertTrue($collection->isNotEmpty());
+    // isEmpty()
+    $this->assertFalse($collection->isEmpty());
+    // contains(value)
+    $this->assertTrue($collection->contains(4));
+    // contains(function)
+    $this->assertTrue($collection->contains(fn ($value, $key) => $value % 3 == 0));
+}
+```
+
+### Ordering Operations
+
+-   Ordering adalah operasi untuk melakukan pengurutan data di Collection
+
+| Method                   | Keterangan                                                  |
+| ------------------------ | ----------------------------------------------------------- |
+| sort()                   | Mengurutkan secara ascending                                |
+| sortBy(key/function)     | Mengurutkan secara ascending berdasarkan key atau function  |
+| sortDesc()               | Mengurutkan secara descending                               |
+| sortByDesc(key/function) | Mengurutkan secara descending berdasarkan key atau function |
+| sortKeys()               | Mengurutkan secara ascending berdasarkan keys               |
+| sortKeysDesc()           | Mengurutkan secara descending berdasarkan keys              |
+| reverse()                | Membalikkan urutan collection                               |
+
+### Aggregate
+
+-   Laravel collection juga memiliki beberapa method untuk melakukan aggregate
+
+| Method            | Keterangan                    |
+| ----------------- | ----------------------------- |
+| min()             | Mengambil data paling kecil   |
+| max()             | Mengambil data paling besar   |
+| avg() / average() | Mengambil rata-rata data      |
+| sum()             | Mengambil seluruh jumlah data |
+| count()           | Mengambil total seluruh data  |
+
+```php
+public function testAggregate()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8]);
+
+    $result = $collection->min();
+    $this->assertEquals(1, $result);
+
+    $result = $collection->max();
+    $this->assertEquals(8, $result);
+
+    $result = $collection->sum();
+    $this->assertEquals(36, $result);
+
+    $result = $collection->avg();
+    $this->assertEquals(4.5, $result);
+
+    $result = $collection->count();
+    $this->assertEquals(8, $result);
+}
+```
+
+### Reduce
+
+-   Jika kita ingin membuat aggregate secara manual, kita bisa menggunakan function reduce
+-   Reduce merupakan operasi yang dilakukan pada tiap data yang ada di collection secara sequential dan mengembalikan hasil
+-   Hasil dari reduce sebelumnya akan digunakan di iterasi selanjutnya
+
+| Method                        | Keterangan                                                                              |
+| ----------------------------- | --------------------------------------------------------------------------------------- |
+| reduce(function(carry, item)) | Pada iterasi pertama, carry akan bernilai data pertama, dan item adalah data sebelumnya |
+|                               | Pada iterasi selanjutnya, carry adalah hasil dari iterasi sebelumnya                    |
+
+```php
+public function testReduce()
+{
+    $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+    $result = $collection->reduce(fn ($carry, $item) => $carry + $item);
+    $this->assertEquals(55, $result);
+
+    // reduce(1,2) = 3
+    // reduce(3,3) = 6
+    // reduce(6,4) = 10
+    // reduce(10,5) = 15
+    // reduce(15,6) = 21
+    // reduce(21,7) = 28
+    // reduce(28,8) = 36
+    // reduce(36,9) = 45
+    // reduce(45,10) = 55
+}
+```
+
+### Lazy Collection
+
+-   Saat belajar PHP, kita pernah membuat Generator (Lazy Array / Iterable)
+-   Di Laravel juga kita bisa membuat hal seperti itu, bernama Lazy Collection
+-   Keuntungan menggunakan Lazy Collection adalah kita bisa melakukan manipulasi data besar, tanpa harus takut semua operasi dieksekusi sebelum dibutuhkan
+-   Saat membuat Lazy Collection, kita perlu menggunakan PHP Generator
+-   https://laravel.com/api/10.x/Illuminate/Support/LazyCollection.html
+
+```php
+public function testLazyCollection()
+{
+    $collection = LazyCollection::make(function () {
+        $value = 0;
+
+        while (true) {
+            yield $value;
+            $value++;
+        }
+    });
+
+    $result = $collection->take(10);
+    $this->assertEqualsCanonicalizing([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], $result->all());
 }
 ```

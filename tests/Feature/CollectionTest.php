@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Data\Person;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\LazyCollection;
 use Tests\TestCase;
 
 class CollectionTest extends TestCase
@@ -278,5 +279,188 @@ class CollectionTest extends TestCase
                 ]
             ])
         ], $result->all());
+    }
+
+    // Slicing
+    public function testSlice()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+        // slice(start)
+        $result = $collection->slice(4);
+        self::assertEqualsCanonicalizing([5, 6, 7, 8, 9], $result->all());
+
+        // slice(start, length)
+        $result = $collection->slice(6, 2);
+        self::assertEqualsCanonicalizing([7, 8], $result->all());
+    }
+
+    // Take and Skip
+    public function testTake()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+        // take(length)
+        $result = $collection->take(4);
+        self::assertEqualsCanonicalizing([1, 2, 3, 4], $result->all());
+
+        // takeUntil(function)
+        $result = $collection->takeUntil(fn ($value, $key) => $value == 4);
+        self::assertEqualsCanonicalizing([1, 2, 3], $result->all());
+
+        // takeWhile(function)
+        $result = $collection->takeWhile(fn ($value, $key) => $value < 3);
+        self::assertEqualsCanonicalizing([1, 2], $result->all());
+    }
+
+    public function testSkip()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9]);
+
+        // skip(length)
+        $result = $collection->skip(3);
+        self::assertEqualsCanonicalizing([4, 5, 6, 7, 8, 9], $result->all());
+
+        // skipUntil(function)
+        $result = $collection->skipUntil(fn ($value, $key) => $value == 3);
+        self::assertEqualsCanonicalizing([3, 4, 5, 6, 7, 8, 9], $result->all());
+
+        // skipWhile(function)
+        $result = $collection->skipWhile(fn ($value, $key) => $value < 6);
+        self::assertEqualsCanonicalizing([6, 7, 8, 9], $result->all());
+    }
+
+    // Chunked
+    public function testChunk()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8]);
+
+        $result = $collection->chunk(3);
+        self::assertEqualsCanonicalizing([1, 2, 3], $result[0]->all());
+        self::assertEqualsCanonicalizing([4, 5, 6], $result[1]->all());
+        self::assertEqualsCanonicalizing([7, 8], $result[2]->all());
+    }
+
+    // Retrieve
+    public function testFirst()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+        // first()
+        $result = $collection->first();
+        self::assertEquals(1, $result);
+
+        // first(function)
+        $result = $collection->first(fn ($value, $key) => $value > 5);
+        self::assertEqualsCanonicalizing(6, $result);
+    }
+
+    public function testLast()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+        // last()
+        $result = $collection->last();
+        self::assertEquals(10, $result);
+
+        // last(function)
+        $result = $collection->last(fn ($value, $key) => $value < 5);
+        self::assertEqualsCanonicalizing(4, $result);
+    }
+
+    // Random
+    public function testRandom()
+    {
+        $collection = collect([1, 2, 3, 4, 5]);
+
+        // random()
+        $result = $collection->random();
+        self::assertTrue(in_array($result, [1, 2, 3, 4, 5]));
+
+        // random(function)
+        $result = $collection->random(5);
+        self::assertEquals([1, 2, 3, 4, 5], $result->all());
+    }
+
+    // Checking
+    public function testCheckingExistence()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8]);
+
+        // isNotEmpty()
+        $this->assertTrue($collection->isNotEmpty());
+        // isEmpty()
+        $this->assertFalse($collection->isEmpty());
+        // contains(value)
+        $this->assertTrue($collection->contains(4));
+        // contains(function)
+        $this->assertTrue($collection->contains(fn ($value, $key) => $value % 3 == 0));
+    }
+
+    // Ordering
+    public function testOrdering()
+    {
+        $collection = collect([1, 3, 5, 7, 6, 2, 9]);
+
+        $result = $collection->sort();
+        $this->assertEqualsCanonicalizing([1, 2, 3, 5, 7, 6, 9], $result->all());
+
+        $result = $collection->sortDesc();
+        $this->assertEqualsCanonicalizing([9, 7, 6, 5, 3, 2, 1], $result->all());
+    }
+
+    // Aggregate
+    public function testAggregate()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8]);
+
+        $result = $collection->min();
+        $this->assertEquals(1, $result);
+
+        $result = $collection->max();
+        $this->assertEquals(8, $result);
+
+        $result = $collection->sum();
+        $this->assertEquals(36, $result);
+
+        $result = $collection->avg();
+        $this->assertEquals(4.5, $result);
+
+        $result = $collection->count();
+        $this->assertEquals(8, $result);
+    }
+
+    // Reduce
+    public function testReduce()
+    {
+        $collection = collect([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]);
+
+        $result = $collection->reduce(fn ($carry, $item) => $carry + $item);
+        $this->assertEquals(55, $result);
+
+        // reduce(1,2) = 3
+        // reduce(3,3) = 6
+        // reduce(6,4) = 10
+        // reduce(10,5) = 15
+        // reduce(15,6) = 21
+        // reduce(21,7) = 28
+        // reduce(28,8) = 36
+        // reduce(36,9) = 45
+        // reduce(45,10) = 55
+    }
+
+    public function testLazyCollection()
+    {
+        $collection = LazyCollection::make(function () {
+            $value = 0;
+
+            while (true) {
+                yield $value;
+                $value++;
+            }
+        });
+
+        $result = $collection->take(10);
+        $this->assertEqualsCanonicalizing([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], $result->all());
     }
 }
